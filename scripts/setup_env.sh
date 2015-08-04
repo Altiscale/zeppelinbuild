@@ -39,6 +39,10 @@ fi
 
 export PATH=$PATH:$M2_HOME/bin:$SCALA_HOME/bin:$ANT_HOME/bin:$JAVA_HOME/bin:$R_HOME
 
+if [ "x${ZEPPELIN_NAME}" = "x" ] ; then
+  export ZEPPELIN_NAME=zeppelin
+fi
+
 if [ "x${ZEPPELIN_VERSION}" = "x" ] ; then
   export ZEPPELIN_VERSION=0.6.0
 fi

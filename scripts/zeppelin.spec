@@ -1,6 +1,6 @@
-%global apache_name           ZEPPELIN_USER
-%global zeppelin_uid          ZEPPELIN_UID
-%global zeppelin_gid          ZEPPELIN_GID
+%global apache_name           ZEPPELIN_NAME
+# %global zeppelin_uid          ZEPPELIN_UID
+# %global zeppelin_gid          ZEPPELIN_GID
 
 %define altiscale_release_ver    ALTISCALE_RELEASE
 %define rpm_package_name         alti-zeppelin
