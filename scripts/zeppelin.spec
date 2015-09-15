@@ -171,7 +171,7 @@ echo "test install zeppelin label zeppelin_folder_name = %{zeppelin_folder_name}
 cp -rp %{_builddir}/%{build_service_name}/* %{buildroot}%{install_zeppelin_dest}/
 
 # test deploy the config folder
-cp -rp %{_builddir}/%{build_service_name}/conf %{buildroot}/%{install_zeppelin_conf}
+cp -rp %{_builddir}/%{build_service_name}/conf/* %{buildroot}/%{install_zeppelin_conf}
 
 # Inherit license, readme, etc
 cp -p %{_builddir}/%{build_service_name}/README.md %{buildroot}/%{install_zeppelin_dest}
@@ -184,7 +184,8 @@ touch %{buildroot}/%{install_zeppelin_label}
 echo "name=%{name}" >> %{buildroot}/%{install_zeppelin_label}
 echo "version=%{zeppelin_version}" >> %{buildroot}/%{install_zeppelin_label}
 echo "release=%{name}-%{release}" >> %{buildroot}/%{install_zeppelin_label}
-
+# Remove conf directory since we will be using /etc/
+rm -rf %{buildroot}/%{install_zeppelin_dest}/conf
 
 %clean
 echo "ok - cleaning up temporary files, deleting %{buildroot}%{install_zeppelin_dest}"
