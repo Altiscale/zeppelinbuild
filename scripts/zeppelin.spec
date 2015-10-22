@@ -17,7 +17,7 @@
 %define install_zeppelin_conf    /etc/%{zeppelin_folder_name}
 %define install_zeppelin_nb      /opt/%{zeppelin_folder_name}/notebook
 %define install_zeppelin_run     /var/run/%{apache_name}
-%define install_zeppelin_logs    /var/log/%{apache_name}
+%define install_zeppelin_logs    /service/log/%{apache_name}
 # %define install_zeppelin_test    /opt/%{zeppelin_testsuite_name}/test_zeppelin
 %define zeppelin_release_dir     /opt/%{apache_name}/lib
 %define build_release         BUILD_TIME
