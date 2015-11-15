@@ -22,13 +22,13 @@ if [ "x${SCALA_HOME}" = "x" ] ; then
   export SCALA_HOME=/opt/scala
 fi
 if [ "x${HADOOP_VERSION}" = "x" ] ; then
-  export HADOOP_VERSION=2.4.1
+  export HADOOP_VERSION=2.7.1
 fi
 if [ "x${HIVE_VERSION}" = "x" ] ; then
-  export HIVE_VERSION=0.13.1
+  export HIVE_VERSION=1.2.1
 fi
 if [ "x${ALTI_SPARK_VERSION}" = "x" ] ; then
-  export ALTI_SPARK_VERSION=1.5.2
+  export ALTI_SPARK_VERSION=1.6.1
 fi
 # AE-1226 temp fix on the R PATH
 if [ "x${R_HOME}" = "x" ] ; then
@@ -47,10 +47,10 @@ if [ "x${ZEPPELIN_NAME}" = "x" ] ; then
 fi
 
 if [ "x${ZEPPELIN_VERSION}" = "x" ] ; then
-  export ZEPPELIN_VERSION=0.6.0
+  export ZEPPELIN_VERSION=0.5.5
 fi
 if [ "x${ZEPPELIN_PLAIN_VERSION}" = "x" ] ; then
-  export ZEPPELIN_PLAIN_VERSION=0.6.0
+  export ZEPPELIN_PLAIN_VERSION=0.5.5
 fi
 if [ "x${ZEPPELIN_YARN}" = "x" ] ; then
   export ZEPPELIN_YARN=true
@@ -102,7 +102,7 @@ else
 fi 
 
 if [ "x${BRANCH_NAME}" = "x" ] ; then
-  export BRANCH_NAME=branch-0.6.0-alti
+  export BRANCH_NAME=branch-0.5.5-alti
 fi
 
 if [ "x${BUILD_TIMEOUT}" = "x" ] ; then

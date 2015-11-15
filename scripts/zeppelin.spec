@@ -137,57 +137,39 @@ echo "ok - building assembly with SPARK_VERSION=$ZEPPELIN_SPARK_VERSION HADOOP_V
 # and install them locally for further reference. We assume the build
 # environment is clean, so we don't need to delete ~/.ivy2 and ~/.m2
 # Default JDK version applied is 1.7 here.
+mvn_settings_option=""
 if [ -f /etc/alti-maven-settings/settings.xml ] ; then
+  mvn_settings_option="--settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml"
   echo "ok - applying altiscale archiva maven repo settings.xml for first priority"
-  if [[ $ZEPPELIN_HADOOP_VERSION == 2.4.* ]] ; then
-    if [[ $ZEPPELIN_SPARK_VERSION == 1.4.* ]] ; then
-      mvn -U -X -Phadoop-2.4 -Pyarn -Pspark-1.4 -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
-      maven_ret_code=$?
-    elif [[ $ZEPPELIN_SPARK_VERSION == 1.5.* ]] ; then
-      mvn -U -X -Phadoop-2.4 -Pyarn -Pspark-1.5 -Ppyspark -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
-      maven_ret_code=$?
-    else
-      echo "fatal - Unrecognize spark version $ZEPPELIN_SPARK_VERSION, can't continue, exiting, no cleanup"
-      exit -9
-    fi
-  elif [[ $ZEPPELIN_HADOOP_VERSION == 2.7.* ]] ; then
-    if [[ $ZEPPELIN_SPARK_VERSION == 1.5.* ]] ; then      
-      mvn -U -X -Phadoop-2.7 -Pyarn -Pspark-1.5 -Ppyspark -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
-      maven_ret_code=$?
-    else
-      echo "fatal - Unrecognize spark version $ZEPPELIN_SPARK_VERSION, can't continue, exiting, no cleanup"
-      exit -9
-    fi
-  else
-    echo "fatal - Unrecognize hadoop version $ZEPPELIN_HADOOP_VERSION, can't continue, exiting, no cleanup"
-    exit -9
-  fi
-else
-  echo "ok - applying default repository from pom.xml for manual local build"
-  if [[ $ZEPPELIN_HADOOP_VERSION == 2.4.* ]] ; then
-    if [[ $ZEPPELIN_SPARK_VERSION == 1.4.* ]] ; then
-      mvn -U -X -Phadoop-2.4 -Pyarn -Pspark-1.4 -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
-      maven_ret_code=$?
-    elif [[ $ZEPPELIN_SPARK_VERSION == 1.5.* ]] ; then
-      mvn -U -X -Phadoop-2.4 -Pyarn -Pspark-1.5 -Ppyspark -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
-      maven_ret_code=$?
-    else
-      echo "fatal - Unrecognize spark version $ZEPPELIN_SPARK_VERSION, can't continue, exiting, no cleanup"
-      exit -9
-    fi
-  elif [[ $ZEPPELIN_HADOOP_VERSION == 2.7.* ]] ; then
-    if [[ $ZEPPELIN_SPARK_VERSION == 1.5.* ]] ; then
-      mvn -U -X -Phadoop-2.7 -Pyarn -Pspark-1.5 -Ppyspark -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
-      maven_ret_code=$?
-    else
-      echo "fatal - Unrecognize spark version $ZEPPELIN_SPARK_VERSION, can't continue, exiting, no cleanup"
-      exit -9
-    fi
-  else
-    echo "fatal - Unrecognize hadoop version $ZEPPELIN_HADOOP_VERSION, can't continue, exiting, no cleanup"
-    exit -9
-  fi
 fi
+
+hadoop_mvn_version_profile=""
+if [[ $ZEPPELIN_HADOOP_VERSION == 2.4.* ]] ; then
+  hadoop_mvn_version_profile="-Phadoop-2.4"
+elif [[ $ZEPPELIN_HADOOP_VERSION == 2.7.* ]] ; then
+  hadoop_mvn_version_profile="-Phadoop-2.7"
+else
+  echo "fatal - Unrecognize hadoop version $ZEPPELIN_HADOOP_VERSION, can't continue, exiting, no cleanup"
+  exit -8
+fi
+
+spark_mvn_version_profile=""
+if [[ $ZEPPELIN_SPARK_VERSION == 1.4.* ]] ; then
+  spark_mvn_version_profile="-Pspark-1.4"
+elif [[ $ZEPPELIN_SPARK_VERSION == 1.5.* ]] ; then
+  spark_mvn_version_profile="-Pspark-1.5"
+elif [[ $ZEPPELIN_SPARK_VERSION == 1.6.* ]] ; then
+  spark_mvn_version_profile="-Pspark-1.6"
+else
+  echo "fatal - Unrecognize spark version $ZEPPELIN_SPARK_VERSION, can't continue, exiting, no cleanup"
+  exit -9
+fi
+
+mvn_cmd="mvn -U -X $hadoop_mvn_version_profile -Pyarn $spark_mvn_version_profile -Pbuild-distr $mvn_settings_option -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package"
+echo "ok - executing $mvn_cmd"
+$mvn_cmd
+maven_ret_code=$?
+
 if [ "x${maven_ret_code}" = "x0" ] ; then
   echo "ok - build zeppelin core completed with hadoop=$ZEPPELIN_HADOOP_VERSION hive=$ZEPPELIN_HIVE_VERSION spark=$ZEPPELIN_SPARK_VERSION successfully!"
 else
@@ -288,6 +270,8 @@ fi
 # Don't delete the users after uninstallation.
 
 %changelog
+* Thu May 12 2016 Andrew Lee 20160512
+- Refactor build command to support extension afterward
 * Fri Nov 20 2015 Andrew Lee 20151120
 - Support multiple version of spark and hadoop
 * Sat Nov 14 2015 Andrew Lee 20151114
