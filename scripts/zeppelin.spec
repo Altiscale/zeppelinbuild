@@ -44,12 +44,12 @@ BuildRequires: jdk >= 1.7.0.51
 
 Url: https://zeppelin.incubator.apache.org/
 %description
-Build from https://github.com/Altiscale/zeppelin/tree/branch-0.6.0-alti with 
-build script https://github.com/Altiscale/zeppelinbuild/tree/build-0.6.0
+Build from https://github.com/Altiscale/zeppelin/tree/branch-0.5.5-alti with 
+build script https://github.com/Altiscale/zeppelinbuild/tree/build-0.5.5
 Origin source form https://github.com/apache/incubator-zeppelin/tree/master
 %{zeppelin_folder_name} is a re-compiled and packaged zeppelin distro that is compiled against Altiscale's 
 Hadoop 2.4.x with YARN 2.4.x enabled, and hive-0.13.1a because of Spark. This package should work with Altiscale 
-Hadoop 2.4.1 and Hive 0.13.1 (vcc-hadoop-2.4.1 and vcc-hive-0.13.1) and Spark 1.4.1.
+Hadoop 2.4.1 and Hive 0.13.1 (vcc-hadoop-2.4.1 and vcc-hive-0.13.1) and Spark 1.5.2.
 
 %pre
 # Soft creation for zeppelin user if it doesn't exist. This behavior is idempotence to Chef deployment.
@@ -132,7 +132,7 @@ echo "ok - building assembly with HADOOP_VERSION=$ZEPPELIN_HADOOP_VERSION HIVE_V
 if [ -f /etc/alti-maven-settings/settings.xml ] ; then
   echo "ok - applying local maven repo settings.xml for first priority"
   if [[ $ZEPPELIN_HADOOP_VERSION == 2.4.* ]] ; then
-    echo "mvn -U -X -Phadoop-2.4 -Pspark-1.4 -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package"
+    echo "mvn -U -X -Phadoop-2.4 -Pspark-1.5 -Ppyspark -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package"
     mvn -U -X -Phadoop-2.4 -Pspark-1.4 -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package
   else
     echo "fatal - Unrecognize hadoop version $ZEPPELIN_HADOOP_VERSION, can't continue, exiting, no cleanup"
@@ -141,7 +141,7 @@ if [ -f /etc/alti-maven-settings/settings.xml ] ; then
 else
   echo "ok - applying default repository form pom.xml"
   if [[ $ZEPPELIN_HADOOP_VERSION == 2.4.* ]] ; then
-    echo "mvn -U -X -Phadoop-2.4 -Pspark-1.4 -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package"
+    echo "mvn -U -X -Phadoop-2.4 -Pspark-1.5 -Ppyspark -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package"
     mvn -U -X -Phadoop-2.4 -Pspark-1.4 -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package
   else
     echo "fatal - Unrecognize hadoop version $ZEPPELIN_HADOOP_VERSION, can't continue, exiting, no cleanup"
@@ -244,6 +244,8 @@ fi
 # Don't delete the users after uninstallation.
 
 %changelog
+* Sat Nov 14 2015 Andrew Lee 20151114
+- Initial Creation of spec file for Apache Zeppelin 0.5.5
 * Tue Aug 4 2015 Andrew Lee 20150804
 - Initial Creation of spec file for Apache Zeppelin 0.6.0
 
