@@ -149,6 +149,7 @@ sed -i "s/ZEPPELIN_PLAINVERSION_REPLACE/$ZEPPELIN_PLAIN_VERSION/g" "$WORKSPACE/r
 sed -i "s:CURRENT_WORKSPACE_REPLACE:$WORKSPACE:g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
 sed -i "s/HADOOP_VERSION_REPLACE/$HADOOP_VERSION/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
 sed -i "s/HIVE_VERSION_REPLACE/$HIVE_VERSION/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
+sed -i "s/SPARK_VERSION_REPLACE/$ALTI_SPARK_VERSION/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
 sed -i "s/ZEPPELIN_NAME/$ZEPPELIN_NAME/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
 sed -i "s/ZEPPELIN_GID/$ZEPPELIN_GID/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
 sed -i "s/ZEPPELIN_UID/$ZEPPELIN_UID/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"

@@ -27,6 +27,9 @@ fi
 if [ "x${HIVE_VERSION}" = "x" ] ; then
   export HIVE_VERSION=0.13.1
 fi
+if [ "x${ALTI_SPARK_VERSION}" = "x" ] ; then
+  export ALTI_SPARK_VERSION=1.5.2
+fi
 # AE-1226 temp fix on the R PATH
 if [ "x${R_HOME}" = "x" ] ; then
   export R_HOME=$(dirname $(rpm -ql $(rpm -qa | grep vcc-R_.*-0.2.0- | sort -r | head -n 1 ) | grep bin | head -n 1))
@@ -62,6 +65,8 @@ elif [ "x${HADOOP_VERSION}" = "x2.4.0" ] ; then
   export ZEPPELIN_VERSION="$ZEPPELIN_VERSION.hadoop24"
 elif [ "x${HADOOP_VERSION}" = "x2.4.1" ] ; then
   export ZEPPELIN_VERSION="$ZEPPELIN_VERSION.hadoop24"
+elif [ "x${HADOOP_VERSION}" = "x2.7.1" ] ; then
+  export ZEPPELIN_VERSION="$ZEPPELIN_VERSION.hadoop27"
 else
   echo "error - can't recognize altiscale's HADOOP_VERSION=$HADOOP_VERSION"
 fi
@@ -72,6 +77,10 @@ elif [ "x${HIVE_VERSION}" = "x0.13.0" ] ; then
   export ZEPPELIN_VERSION="$ZEPPELIN_VERSION.hive13"
 elif [ "x${HIVE_VERSION}" = "x0.13.1" ] ; then
   export ZEPPELIN_VERSION="$ZEPPELIN_VERSION.hive13"
+elif [ "x${HIVE_VERSION}" = "x1.2.0" ] ; then
+  export ZEPPELIN_VERSION="$ZEPPELIN_VERSION.hive120"
+elif [ "x${HIVE_VERSION}" = "x1.2.1" ] ; then
+  export ZEPPELIN_VERSION="$ZEPPELIN_VERSION.hive121"
 else
   echo "error - can't recognize altiscale's HIVE_VERSION=$HIVE_VERSION"
 fi
@@ -83,6 +92,8 @@ if [ "x${ALTISCALE_RELEASE}" = "x" ] ; then
     export ALTISCALE_RELEASE=3.0.0
   elif [ "x${HADOOP_VERSION}" = "x2.4.1" ] ; then
     export ALTISCALE_RELEASE=3.0.0
+  elif [ "x${HADOOP_VERSION}" = "x2.7.1" ] ; then
+    export ALTISCALE_RELEASE=4.0.0
   else
     echo "error - can't recognize altiscale's HADOOP_VERSION=$HADOOP_VERSION for ALTISCALE_RELEASE"
   fi 

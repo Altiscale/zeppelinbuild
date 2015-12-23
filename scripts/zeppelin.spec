@@ -9,6 +9,7 @@
 %define current_workspace        CURRENT_WORKSPACE_REPLACE
 %define hadoop_version           HADOOP_VERSION_REPLACE
 %define hive_version             HIVE_VERSION_REPLACE
+%define spark_version            SPARK_VERSION_REPLACE
 %define build_service_name       alti-zeppelin
 %define zeppelin_folder_name     %{rpm_package_name}-%{zeppelin_version}
 %define zeppelin_testsuite_name  %{zeppelin_folder_name}
@@ -44,12 +45,12 @@ BuildRequires: jdk >= 1.7.0.51
 
 Url: https://zeppelin.incubator.apache.org/
 %description
-Build from https://github.com/Altiscale/zeppelin/tree/branch-0.6.0-alti with 
-build script https://github.com/Altiscale/zeppelinbuild/tree/build-0.6.0
+Build from https://github.com/Altiscale/zeppelin/tree/branch-0.5.5-alti with 
+build script https://github.com/Altiscale/zeppelinbuild/tree/build-0.5.5
 Origin source form https://github.com/apache/incubator-zeppelin/tree/master
 %{zeppelin_folder_name} is a re-compiled and packaged zeppelin distro that is compiled against Altiscale's 
 Hadoop 2.4.x with YARN 2.4.x enabled, and hive-0.13.1a because of Spark. This package should work with Altiscale 
-Hadoop 2.4.1 and Hive 0.13.1 (vcc-hadoop-2.4.1 and vcc-hive-0.13.1) and Spark 1.4.1.
+Hadoop 2.4.1 and Hive 0.13.1 (vcc-hadoop-2.4.1 and vcc-hive-0.13.1) and Spark 1.5.2.
 
 %pre
 # Soft creation for zeppelin user if it doesn't exist. This behavior is idempotence to Chef deployment.
@@ -108,6 +109,13 @@ else
   export ZEPPELIN_HIVE_VERSION=%{hive_version}
   echo "ok - applying customized hive version $ZEPPELIN_HIVE_VERSION"
 fi
+if [ "x%{spark_version}" = "x" ] ; then
+  echo "fatal - SPARK_VERSION needs to be set, can't build anything, exiting"
+  exit -8
+else
+  export ZEPPELIN_SPARK_VERSION=%{spark_version}
+  echo "ok - applying customized spark version $ZEPPELIN_SPARK_VERSION"
+fi
 
 # Always build with YARN
 export ZEPPELIN_YARN=true
@@ -115,8 +123,8 @@ export ZEPPELIN_YARN=true
 export ZEPPELIN_HIVE=true
 
 env | sort
-
-echo "ok - building assembly with HADOOP_VERSION=$ZEPPELIN_HADOOP_VERSION HIVE_VERSION=$ZEPPELIN_HIVE_VERSION ZEPPELIN_YARN=$ZEPPELIN_YARN ZEPPELIN_HIVE=$ZEPPELIN_HIVE"
+maven_ret_code=""
+echo "ok - building assembly with SPARK_VERSION=$ZEPPELIN_SPARK_VERSION HADOOP_VERSION=$ZEPPELIN_HADOOP_VERSION HIVE_VERSION=$ZEPPELIN_HIVE_VERSION ZEPPELIN_YARN=$ZEPPELIN_YARN ZEPPELIN_HIVE=$ZEPPELIN_HIVE"
 # ZEPPELIN_HADOOP_VERSION=2.2.0 ZEPPELIN_YARN=true sbt/sbt assembly
 
 # PURGE LOCAL CACHE for clean build
@@ -130,27 +138,63 @@ echo "ok - building assembly with HADOOP_VERSION=$ZEPPELIN_HADOOP_VERSION HIVE_V
 # environment is clean, so we don't need to delete ~/.ivy2 and ~/.m2
 # Default JDK version applied is 1.7 here.
 if [ -f /etc/alti-maven-settings/settings.xml ] ; then
-  echo "ok - applying local maven repo settings.xml for first priority"
+  echo "ok - applying altiscale archiva maven repo settings.xml for first priority"
   if [[ $ZEPPELIN_HADOOP_VERSION == 2.4.* ]] ; then
-    echo "mvn -U -X -Phadoop-2.4 -Pspark-1.4 -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package"
-    mvn -U -X -Phadoop-2.4 -Pspark-1.4 -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package
+    if [[ $ZEPPELIN_SPARK_VERSION == 1.4.* ]] ; then
+      mvn -U -X -Phadoop-2.4 -Pyarn -Pspark-1.4 -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
+      maven_ret_code=$?
+    elif [[ $ZEPPELIN_SPARK_VERSION == 1.5.* ]] ; then
+      mvn -U -X -Phadoop-2.4 -Pyarn -Pspark-1.5 -Ppyspark -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
+      maven_ret_code=$?
+    else
+      echo "fatal - Unrecognize spark version $ZEPPELIN_SPARK_VERSION, can't continue, exiting, no cleanup"
+      exit -9
+    fi
+  elif [[ $ZEPPELIN_HADOOP_VERSION == 2.7.* ]] ; then
+    if [[ $ZEPPELIN_SPARK_VERSION == 1.5.* ]] ; then      
+      mvn -U -X -Phadoop-2.7 -Pyarn -Pspark-1.5 -Ppyspark -Pbuild-distr --settings /etc/alti-maven-settings/settings.xml --global-settings /etc/alti-maven-settings/settings.xml -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
+      maven_ret_code=$?
+    else
+      echo "fatal - Unrecognize spark version $ZEPPELIN_SPARK_VERSION, can't continue, exiting, no cleanup"
+      exit -9
+    fi
   else
     echo "fatal - Unrecognize hadoop version $ZEPPELIN_HADOOP_VERSION, can't continue, exiting, no cleanup"
     exit -9
   fi
 else
-  echo "ok - applying default repository form pom.xml"
+  echo "ok - applying default repository from pom.xml for manual local build"
   if [[ $ZEPPELIN_HADOOP_VERSION == 2.4.* ]] ; then
-    echo "mvn -U -X -Phadoop-2.4 -Pspark-1.4 -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package"
-    mvn -U -X -Phadoop-2.4 -Pspark-1.4 -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -DskipTests clean package
+    if [[ $ZEPPELIN_SPARK_VERSION == 1.4.* ]] ; then
+      mvn -U -X -Phadoop-2.4 -Pyarn -Pspark-1.4 -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
+      maven_ret_code=$?
+    elif [[ $ZEPPELIN_SPARK_VERSION == 1.5.* ]] ; then
+      mvn -U -X -Phadoop-2.4 -Pyarn -Pspark-1.5 -Ppyspark -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
+      maven_ret_code=$?
+    else
+      echo "fatal - Unrecognize spark version $ZEPPELIN_SPARK_VERSION, can't continue, exiting, no cleanup"
+      exit -9
+    fi
+  elif [[ $ZEPPELIN_HADOOP_VERSION == 2.7.* ]] ; then
+    if [[ $ZEPPELIN_SPARK_VERSION == 1.5.* ]] ; then
+      mvn -U -X -Phadoop-2.7 -Pyarn -Pspark-1.5 -Ppyspark -Pbuild-distr -Dhadoop.version=$ZEPPELIN_HADOOP_VERSION -Dyarn.version=$ZEPPELIN_HADOOP_VERSION -Dhive.version=$ZEPPELIN_HIVE_VERSION -Dspark.version=$ZEPPELIN_SPARK_VERSION -DskipTests clean package
+      maven_ret_code=$?
+    else
+      echo "fatal - Unrecognize spark version $ZEPPELIN_SPARK_VERSION, can't continue, exiting, no cleanup"
+      exit -9
+    fi
   else
     echo "fatal - Unrecognize hadoop version $ZEPPELIN_HADOOP_VERSION, can't continue, exiting, no cleanup"
     exit -9
   fi
 fi
-
+if [ "x${maven_ret_code}" = "x0" ] ; then
+  echo "ok - build zeppelin core completed with hadoop=$ZEPPELIN_HADOOP_VERSION hive=$ZEPPELIN_HIVE_VERSION spark=$ZEPPELIN_SPARK_VERSION successfully!"
+else
+  echo "fatal - build zeppelin failed, see maven logs"
+  exit -10
+fi
 popd
-echo "ok - build zeppelin core completed successfully!"
 
 %install
 # manual cleanup for compatibility, and to be safe if the %clean isn't implemented
@@ -244,6 +288,10 @@ fi
 # Don't delete the users after uninstallation.
 
 %changelog
+* Fri Nov 20 2015 Andrew Lee 20151120
+- Support multiple version of spark and hadoop
+* Sat Nov 14 2015 Andrew Lee 20151114
+- Initial Creation of spec file for Apache Zeppelin 0.5.5
 * Tue Aug 4 2015 Andrew Lee 20150804
 - Initial Creation of spec file for Apache Zeppelin 0.6.0
 
