@@ -47,10 +47,10 @@ if [ "x${ZEPPELIN_NAME}" = "x" ] ; then
 fi
 
 if [ "x${ZEPPELIN_VERSION}" = "x" ] ; then
-  export ZEPPELIN_VERSION=0.5.5
+  export ZEPPELIN_VERSION=0.5.6
 fi
 if [ "x${ZEPPELIN_PLAIN_VERSION}" = "x" ] ; then
-  export ZEPPELIN_PLAIN_VERSION=0.5.5
+  export ZEPPELIN_PLAIN_VERSION=0.5.6
 fi
 if [ "x${ZEPPELIN_YARN}" = "x" ] ; then
   export ZEPPELIN_YARN=true
@@ -102,11 +102,11 @@ else
 fi 
 
 if [ "x${BRANCH_NAME}" = "x" ] ; then
-  export BRANCH_NAME=branch-0.5.5-alti
+  export BRANCH_NAME=branch-0.5.6-alti
 fi
 
 if [ "x${BUILD_TIMEOUT}" = "x" ] ; then
-  export BUILD_TIMEOUT=28400
+  export BUILD_TIMEOUT=56800
 fi
 
 BUILD_TIME=$(date +%Y%m%d%H%M)
