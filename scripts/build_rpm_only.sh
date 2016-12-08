@@ -13,6 +13,8 @@ build_timeout=14400
 maven_settings="$HOME/.m2/settings.xml"
 maven_settings_spec="$curr_dir/alti-maven-settings.spec"
 
+git_hash=""
+
 if [ -f "$curr_dir/setup_env.sh" ]; then
   set -a
   # source "$curr_dir/setup_env.sh"
@@ -66,13 +68,14 @@ fi
   git checkout $ZEPPELIN_BRANCH_NAME
   git fetch --all
   git pull
+  git_hash=$(git rev-parse HEAD | tr -d '\n')
 popd
 
 echo "ok - tar zip source file, preparing for build/compile by rpmbuild"
 mkdir -p $WORKSPACE/rpmbuild/{BUILD,BUILDROOT,RPMS,SPECS,SOURCES,SRPMS}/
 cp -f "$zeppelin_spec" $WORKSPACE/rpmbuild/SPECS/zeppelin.spec
 pushd $WORKSPACE
-tar --exclude .git --exclude .gitignore -cf $WORKSPACE/rpmbuild/SOURCES/zeppelin.tar zeppelin test_zeppelin
+tar --exclude .git --exclude .gitignore -cf $WORKSPACE/rpmbuild/SOURCES/zeppelin.tar zeppelin 
 popd
 
 pushd "$WORKSPACE/rpmbuild/SOURCES/"
@@ -81,7 +84,6 @@ if [ -d alti-zeppelin ] ; then
   rm -rf alti-zeppelin
 fi
 mv zeppelin alti-zeppelin
-cp -rp test_zeppelin alti-zeppelin/
 tar --exclude .git --exclude .gitignore -cpzf alti-zeppelin.tar.gz alti-zeppelin
 stat alti-zeppelin.tar.gz
 
@@ -92,28 +94,43 @@ if [ -f "$maven_settings" ] ; then
   cp "$maven_settings_spec" $WORKSPACE/rpmbuild/SPECS/
 fi
 # 
-# Explicitly define ZEPPELIN_HOME here for build purpose
-export ZEPPELIN_HOME=$WORKSPACE/rpmbuild/BUILD/alti-zeppelin
-echo "ok - applying version number $ZEPPELIN_VERSION and release number $BUILD_TIME, the pattern delimiter is / here"
-sed -i "s/ZEPPELIN_VERSION_REPLACE/$ZEPPELIN_VERSION/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s/ZEPPELIN_PLAINVERSION_REPLACE/$ZEPPELIN_PLAIN_VERSION/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s:CURRENT_WORKSPACE_REPLACE:$WORKSPACE:g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s/HADOOP_VERSION_REPLACE/$HADOOP_VERSION/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s/HIVE_VERSION_REPLACE/$HIVE_VERSION/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s/SPARK_VERSION_REPLACE/$ALTI_SPARK_VERSION/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s/ZEPPELIN_NAME/$ZEPPELIN_NAME/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s/ZEPPELIN_GID/$ZEPPELIN_GID/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s/ZEPPELIN_UID/$ZEPPELIN_UID/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s/BUILD_TIME/$BUILD_TIME/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
-sed -i "s/ALTISCALE_RELEASE/$ALTISCALE_RELEASE/g" "$WORKSPACE/rpmbuild/SPECS/zeppelin.spec"
 
-rpmbuild -vvv -ba --define "_topdir $WORKSPACE/rpmbuild" --buildroot $WORKSPACE/rpmbuild/BUILDROOT/ $WORKSPACE/rpmbuild/SPECS/zeppelin.spec
+rpmbuild -vvv -ba \
+  --define "_topdir $WORKSPACE/rpmbuild" \
+  --define "_current_workspace $WORKSPACE" \
+  --define "_zeppelin_version $ZEPPELIN_VERSION" \
+  --define "_spark_version $SPARK_VERSION" \
+  --define "_spark_minor_version $SPARK_MINOR_VERSION" \
+  --define "_git_hash_release $git_hash" \
+  --define "_hadoop_version $HADOOP_VERSION" \
+  --define "_hive_version $HIVE_VERSION" \
+  --define "_altiscale_release_ver $ALTISCALE_RELEASE" \
+  --define "_apache_name $ZEPPELIN_PKG_NAME" \
+  --define "_build_release $BUILD_TIME" \
+  --define "_production_release $PRODUCTION_RELEASE" \
+  --buildroot $WORKSPACE/rpmbuild/BUILDROOT/ \
+  $WORKSPACE/rpmbuild/SPECS/zeppelin.spec
 if [ $? -ne "0" ] ; then
   echo "fail - rpmbuild -ba RPM build failed"
   exit -96
 fi
 
-rpmbuild -vvv -bi --short-circuit --define "_topdir $WORKSPACE/rpmbuild" --buildroot $WORKSPACE/rpmbuild/BUILDROOT/ $WORKSPACE/rpmbuild/SPECS/zeppelin.spec
+rpmbuild -vvv -bi --short-circuit \
+  --define "_topdir $WORKSPACE/rpmbuild" \
+  --define "_current_workspace $WORKSPACE" \
+  --define "_zeppelin_version $ZEPPELIN_VERSION" \
+  --define "_spark_version $SPARK_VERSION" \
+  --define "_spark_minor_version $SPARK_MINOR_VERSION" \
+  --define "_git_hash_release $git_hash" \
+  --define "_hadoop_version $HADOOP_VERSION" \
+  --define "_hive_version $HIVE_VERSION" \
+  --define "_altiscale_release_ver $ALTISCALE_RELEASE" \
+  --define "_apache_name $ZEPPELIN_PKG_NAME" \
+  --define "_build_release $BUILD_TIME" \
+  --define "_production_release $PRODUCTION_RELEASE" \
+  --buildroot $WORKSPACE/rpmbuild/BUILDROOT/ \
+  $WORKSPACE/rpmbuild/SPECS/zeppelin.spec
+
 if [ $? -ne "0" ] ; then
   echo "fail - rpmbuild -bi --short-circuit RPM build failed"
   exit -97
