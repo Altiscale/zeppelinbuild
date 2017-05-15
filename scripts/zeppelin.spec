@@ -214,8 +214,8 @@ elif [ "$1" = "2" ]; then
 fi
 # TODO: Move to Chef later. The symbolic link is version sensitive
 # CLean up old symlink
-rm -vf %{install_zeppelin_dest}/logs
-rm -vf %{install_zeppelin_dest}/conf
+rm -vrf %{install_zeppelin_dest}/logs
+rm -vrf %{install_zeppelin_dest}/conf
 # Restore conf and logs symlink
 ln -vsf %{install_zeppelin_conf} %{install_zeppelin_dest}/conf
 ln -vsf %{install_zeppelin_logs} %{install_zeppelin_dest}/logs
