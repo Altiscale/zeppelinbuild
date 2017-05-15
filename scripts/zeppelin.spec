@@ -4,12 +4,14 @@
 %define zeppelin_folder_name     %{rpm_package_name}-%{_zeppelin_version}
 %define zeppelin_testsuite_name  %{zeppelin_folder_name}
 %define install_zeppelin_dest    /opt/%{zeppelin_folder_name}
+%define zeppelin_bin_dir     /opt/%{zeppelin_folder_name}/bin
+%define zeppelin_release_dir     /opt/%{zeppelin_folder_name}/lib
+%define install_zeppelin_nb      /opt/%{zeppelin_folder_name}/notebook
+%define zeppelin_license_dir     /opt/%{zeppelin_folder_name}/licenses
 %define install_zeppelin_label   /opt/%{zeppelin_folder_name}/VERSION
 %define install_zeppelin_conf    /etc/%{zeppelin_folder_name}
-%define install_zeppelin_nb      /opt/%{zeppelin_folder_name}/notebook
 %define install_zeppelin_run     /var/run/%{_apache_name}
 %define install_zeppelin_logs    /service/log/%{_apache_name}
-%define zeppelin_release_dir     /opt/%{zeppelin_folder_name}/lib
 
 Name: %{rpm_package_name}-%{_zeppelin_version}
 Summary: %{zeppelin_folder_name} RPM Installer AE-576, cluster mode restricted with warnings
@@ -20,9 +22,9 @@ Group: Development/Libraries
 Source: %{_sourcedir}/%{build_service_name}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{release}-root-%{build_service_name}
 Requires(pre): shadow-utils
-Requires: scala = 2.11.8
+Requires: scala = 2.10.5
 # BuildRequires: vcc-hive-%{_hive_version}
-BuildRequires: scala = 2.11.8
+BuildRequires: scala = 2.10.5
 BuildRequires: apache-maven >= 3.3.3
 BuildRequires: jdk >= 1.7.0.51
 BuildRequires: git >= 1.7.1
@@ -33,8 +35,8 @@ Build from https://github.com/Altiscale/zeppelin/tree/branch-0.6-alti with
 build script https://github.com/Altiscale/zeppelinbuild/tree/branch-0.6-alti
 Origin source form https://github.com/apache/zeppelin/tree/branch-0.6
 %{zeppelin_folder_name} is a re-compiled and packaged zeppelin distro that is compiled against Altiscale's 
-Hadoop 2.7.x with YARN 2.7.x enabled, and hive-1.2.1. This package should work with Altiscale 
-Hadoop 2.7.x and Hive 1.2.1 (alti-hadoop-2.7.x and alti-hive-1.2.x).
+Hadoop 2.7.x with YARN 2.7.x enabled, spark 1.6.x, and hive-1.2.1. This package should work with Altiscale 
+Hadoop 2.7.x, Spark 1.6.x, and Hive 1.2.1 (alti-hadoop-2.7.x, alti-spark-1.6.x, and alti-hive-1.2.x).
 
 %pre
 
@@ -152,7 +154,7 @@ fi
 #   mvn_release_flag="-Psnapshots"
 # fi
 
-mvn_cmd="mvn -U -X $hadoop_profile_str -Pspark-%{_spark_version} $xml_setting_str -Dspark.version=%{_spark_minor_version} -Dhadoop.version=%{_hadoop_version} -Dyarn.version=%{_hadoop_version} -Dhive.version=%{_hive_version} -DskipTests clean package"
+mvn_cmd="mvn -U -X $hadoop_profile_str -Pscala-%{_scala_build_version} -Pyarn -Ppyspark -Psparkr -Pspark-%{_spark_version} $xml_setting_str -Dspark.version=%{_spark_minor_version} -Dhadoop.version=%{_hadoop_version} -Dyarn.version=%{_hadoop_version} -Dhive.version=%{_hive_version} -DskipTests clean package"
 echo "$mvn_cmd"
 $mvn_cmd
 
@@ -174,8 +176,26 @@ echo "test install zeppelin label zeppelin_folder_name = %{zeppelin_folder_name}
 %{__mkdir} -p %{buildroot}%{install_zeppelin_conf}
 %{__mkdir} -p %{buildroot}%{install_zeppelin_nb}
 %{__mkdir} -p %{buildroot}%{install_zeppelin_run}
+%{__mkdir} -p %{buildroot}%{zeppelin_release_dir}
+%{__mkdir} -p %{buildroot}%{zeppelin_license_dir}
+%{__mkdir} -p %{buildroot}%{zeppelin_bin_dir}
+
 # copy all necessary jars
-cp -rp %{_builddir}/%{build_service_name}/* %{buildroot}%{install_zeppelin_dest}/
+cp -p %{_builddir}/%{build_service_name}/zeppelin-web/target/zeppelin-web-%{_zeppelin_version}.war %{buildroot}%{install_zeppelin_dest}/
+cp -p %{_builddir}/%{build_service_name}/zeppelin-server/target/zeppelin-server-%{_zeppelin_version}.jar %{buildroot}%{install_zeppelin_dest}/
+cp -p %{_builddir}/%{build_service_name}/zeppelin-interpreter/target/zeppelin-interpreter-%{_zeppelin_version}.jar %{buildroot}%{zeppelin_release_dir}/
+cp -p %{_builddir}/%{build_service_name}/zeppelin-zengine/target/zeppelin-zengine-%{_zeppelin_version}.jar %{buildroot}%{zeppelin_release_dir}/
+
+# provide auxiliaries JARs
+cp -p %{_builddir}/%{build_service_name}/zeppelin-interpreter/target/lib/* %{buildroot}%{zeppelin_release_dir}/
+cp -p %{_builddir}/%{build_service_name}/zeppelin-zengine/target/lib/* %{buildroot}%{zeppelin_release_dir}/
+cp -p %{_builddir}/%{build_service_name}/zeppelin-server/target/lib/* %{buildroot}%{zeppelin_release_dir}/
+cp -p %{_builddir}/%{build_service_name}/zeppelin-server/target/lib/* %{buildroot}%{zeppelin_release_dir}/
+
+
+cp -rp %{_builddir}/%{build_service_name}/interpreter %{buildroot}%{install_zeppelin_dest}/
+cp -rp %{_builddir}/%{build_service_name}/notebook/* %{buildroot}%{install_zeppelin_nb}/
+cp -rp %{_builddir}/%{build_service_name}/bin/* %{buildroot}%{zeppelin_bin_dir}/
 
 # test deploy the config folder
 cp -rp %{_builddir}/%{build_service_name}/conf/* %{buildroot}/%{install_zeppelin_conf}
@@ -184,6 +204,8 @@ cp -rp %{_builddir}/%{build_service_name}/conf/* %{buildroot}/%{install_zeppelin
 cp -p %{_builddir}/%{build_service_name}/README.md %{buildroot}/%{install_zeppelin_dest}
 cp -p %{_builddir}/%{build_service_name}/LICENSE %{buildroot}/%{install_zeppelin_dest}
 cp -p %{_builddir}/%{build_service_name}/NOTICE %{buildroot}/%{install_zeppelin_dest}
+cp -p %{_builddir}/%{build_service_name}/zeppelin-distribution/src/bin_license/licenses/* %{buildroot}/%{zeppelin_license_dir}
+
 # This will capture the installation property form this spec file for further references
 rm -f %{buildroot}/%{install_zeppelin_label}
 touch %{buildroot}/%{install_zeppelin_label}

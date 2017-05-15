@@ -27,9 +27,9 @@ export PATH=$PATH:$M2_HOME/bin:$SCALA_HOME/bin:$ANT_HOME/bin:$JAVA_HOME/bin:$R_H
 # and all other Hive/Spark build related env
 export ZEPPELIN_PKG_NAME=${ZEPPELIN_PKG_NAME:-"zeppelin"}
 export ZEPPELIN_VERSION=${ZEPPELIN_VERSION:-"0.6.2"}
-export SPARK_MINOR_VERSION=${SPARK_MINOR_VERSION:-"2.0.2"}
-export SPARK_VERSION=${SPARK_VERSION:-"2.0"}
-export SCALA_VERSION=${SCALA_VERSION:-"2.11"}
+export SPARK_MINOR_VERSION=${SPARK_MINOR_VERSION:-"1.6.2"}
+export SPARK_VERSION=${SPARK_VERSION:-"1.6"}
+export SCALA_VERSION=${SCALA_VERSION:-"2.10"}
 
 if [[ $SPARK_VERSION == 2.* ]] ; then
   if [[ $SCALA_VERSION != 2.11 ]] ; then
